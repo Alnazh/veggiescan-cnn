@@ -1,4 +1,4 @@
-# 🥦 VeggieScan — Klasifikasi Sayuran Berbasis Random Forest
+# VeggieScan - Klasifikasi Sayuran Berbasis Random Forest
 
 Sistem klasifikasi jenis sayuran menggunakan algoritma **Random Forest** berbasis fitur warna (RGB & HSV).  
 Dibangun dengan Flask, scikit-learn, dan Bootstrap 5.
@@ -122,5 +122,5 @@ veggiescan/
 ## Screenshots
 
 ### Tampilan Utama
-![Dashbord](dashbord.png)
-![Klasifikasi](klasifikasi.png)
+![Dashbord](static/img/dashboard.png)
+![Klasifikasi](static/img/klasifikasi.png)
