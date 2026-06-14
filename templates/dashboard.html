@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block breadcrumb %}<span class="breadcrumb-current">Dashboard</span>{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">VeggieScan Dashboard</h1>
+  <p class="page-subtitle">
+    Klasifikasi Sayuran dengan CNN MobileNetV2 Transfer Learning &middot;
+    15 Kelas &middot; 21.000+ Gambar &middot; Akurasi Validasi {{ eval_data.akurasi_val }}%
+  </p>
+</div>
+
+<!-- Stat cards ringkasan -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-4 col-xl">
+    <div class="stat-card">
+      <div class="stat-icon green"><i class="bi bi-check-circle-fill" style="font-size:22px;color:var(--success-color);"></i></div>
+      <div><div class="stat-value">{{ eval_data.akurasi_val }}%</div><div class="stat-label">Akurasi Val Terbaik</div></div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-xl">
+    <div class="stat-card">
+      <div class="stat-icon green"><i class="bi bi-graph-up-arrow" style="font-size:22px;color:var(--primary);"></i></div>
+      <div><div class="stat-value">{{ eval_data.akurasi }}%</div><div class="stat-label">Akurasi Training</div></div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-xl">
+    <div class="stat-card">
+      <div class="stat-icon orange"><i class="bi bi-images" style="font-size:22px;color:var(--warning-color);"></i></div>
+      <div><div class="stat-value">21K+</div><div class="stat-label">Total Gambar</div></div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-xl">
+    <div class="stat-card">
+      <div class="stat-icon blue"><i class="bi bi-layers-fill" style="font-size:22px;color:var(--info-color);"></i></div>
+      <div><div class="stat-value">{{ eval_data.epochs_dilatih }}</div><div class="stat-label">Total Epochs</div></div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-xl">
+    <div class="stat-card">
+      <div class="stat-icon purple"><i class="bi bi-grid-3x3-gap-fill" style="font-size:22px;color:#8B5CF6;"></i></div>
+      <div><div class="stat-value">15</div><div class="stat-label">Kelas Sayuran</div></div>
+    </div>
+  </div>
+</div>
+
+<!--
+  Foto sayuran: menggunakan foto lokal dari static/img/
+  Urutan sesuai LABEL_SAYURAN di app.py:
+  0=Bean, 1=Bitter_Gourd, 2=Bottle_Gourd, 3=Brinjal, 4=Broccoli,
+  5=Cabbage, 6=Capsicum, 7=Carrot, 8=Cauliflower, 9=Cucumber,
+  10=Papaya, 11=Potato, 12=Pumpkin, 13=Radish, 14=Tomato
+-->
+{% set veggie_photos = [
+  url_for('static', filename='img/kacang-polong.jpg'),
+  url_for('static', filename='img/pare.jpg'),
+  url_for('static', filename='img/labu-air.jpg'),
+  url_for('static', filename='img/terong.jpg'),
+  url_for('static', filename='img/brokoli.jpg'),
+  url_for('static', filename='img/kubis.jpg'),
+  url_for('static', filename='img/paprika.jpg'),
+  url_for('static', filename='img/wortel.jpg'),
+  url_for('static', filename='img/kembang-kol.jpg'),
+  url_for('static', filename='img/timun.jpg'),
+  url_for('static', filename='img/pepaya-muda.jpg'),
+  url_for('static', filename='img/kentang.jpg'),
+  url_for('static', filename='img/labu-kuning.jpg'),
+  url_for('static', filename='img/lobak.jpg'),
+  url_for('static', filename='img/tomat.jpg')
+] %}
+{% set fallback_emoji = ['🫘','🫛','🥗','🍆','🥦','🥬','🫑','🥕','🌸','🥒','🍈','🥔','🎃','🌿','🍅'] %}
+
+<!-- Bagian utama: daftar sayuran + info model -->
+<div class="row g-4 mb-4">
+  <div class="col-12 col-lg-8">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><i class="bi bi-collection-fill"></i> 15 Kelas Sayuran yang Diklasifikasi</div>
+        <a href="{{ url_for('klasifikasi') }}" class="btn btn-primary btn-sm">
+          <i class="bi bi-camera-fill me-1"></i>Coba Sekarang
+        </a>
+      </div>
+      <div class="card-body" style="padding-top:10px;padding-bottom:10px;">
+        <div class="row g-2">
+          {% for sv in label_sayuran %}
+          <div class="col-6 col-md-4">
+            <div class="veggie-card" style="padding:8px 10px;">
+              <div class="veggie-card-thumb" style="width:44px;height:44px;flex-shrink:0;border-radius:8px;overflow:hidden;background:var(--bg);">
+                <img
+                  src="{{ veggie_photos[loop.index0] }}"
+                  alt="{{ sv.nama_id }}"
+                  loading="lazy"
+                  style="width:100%;height:100%;object-fit:cover;"
+                  onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
+                />
+                <span style="display:none;align-items:center;justify-content:center;width:100%;height:100%;font-size:20px;">
+                  {{ fallback_emoji[loop.index0] }}
+                </span>
+              </div>
+              <div class="veggie-card-info" style="padding-left:8px;">
+                <div class="veggie-card-name" style="font-size:12px;">{{ sv.nama_id }}</div>
+                <div class="veggie-card-latin" style="font-size:10px;">{{ sv.latin }}</div>
+                <span class="veggie-card-kat" style="font-size:9.5px;">{{ sv.kategori.split()[0] }}</span>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-4 d-flex flex-column gap-4">
+    <!-- Info Model CNN -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><i class="bi bi-cpu-fill"></i> Informasi Model CNN</div>
+      </div>
+      <div class="card-body p-0">
+        <div class="info-row" style="padding:10px 20px;">
+          <span class="info-row-label">Arsitektur</span>
+          <span class="info-row-val fw-bold">MobileNetV2 (alpha=0.50)</span>
+        </div>
+        <div class="info-row" style="padding:10px 20px;">
+          <span class="info-row-label">Metode</span>
+          <span class="info-row-val">Transfer Learning + Fine-Tuning</span>
+        </div>
+        <div class="info-row" style="padding:10px 20px;">
+          <span class="info-row-label">Input Size</span>
+          <span class="info-row-val">128 x 128 x 3 (RGB)</span>
+        </div>
+        <div class="info-row" style="padding:10px 20px;">
+          <span class="info-row-label">Fase 1</span>
+          <span class="info-row-val">{{ eval_data.fase1_epochs }} epoch, Adam lr=0.001 (frozen)</span>
+        </div>
+        <div class="info-row" style="padding:10px 20px;">
+          <span class="info-row-label">Fase 2</span>
+          <span class="info-row-val">{{ eval_data.fase2_epochs }} epoch, Adam lr=0.0001 (fine-tune)</span>
+        </div>
+        <div class="info-row" style="padding:10px 20px;">
+          <span class="info-row-label">Loss Fn</span>
+          <span class="info-row-val">Categorical Crossentropy</span>
+        </div>
+        <div class="info-row" style="padding:10px 20px;">
+          <span class="info-row-label">Akurasi Val</span>
+          <span class="info-row-val">
+            <span class="result-badge high"><i class="bi bi-check-circle-fill"></i>{{ eval_data.akurasi_val }}%</span>
+          </span>
+        </div>
+        <div class="info-row" style="padding:10px 20px;">
+          <span class="info-row-label">Val Loss</span>
+          <span class="info-row-val fw-bold">{{ eval_data.val_loss }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bagian bawah: Cara Kerja CNN + Mulai Klasifikasi -->
+<div class="row g-4">
+
+  <!-- Cara kerja sistem CNN -->
+  <div class="col-12 col-md-6">
+    <div class="card h-100">
+      <div class="card-header">
+        <div class="card-title"><i class="bi bi-diagram-3-fill"></i> Cara Kerja Sistem</div>
+      </div>
+      <div class="card-body">
+        <div class="cnn-step-list">
+          <div class="cnn-step">
+            <div class="cnn-step-num">1</div>
+            <div>
+              <strong>Upload Foto</strong><br>
+              <span style="font-size:12px;color:var(--text-muted-c);">Unggah foto sayuran format JPG, PNG, atau WebP</span>
+            </div>
+          </div>
+          <div class="cnn-step">
+            <div class="cnn-step-num">2</div>
+            <div>
+              <strong>Pra-proses Gambar</strong><br>
+              <span style="font-size:12px;color:var(--text-muted-c);">Resize ke 128x128 px dan normalisasi 0&ndash;1 via OpenCV</span>
+            </div>
+          </div>
+          <div class="cnn-step">
+            <div class="cnn-step-num">3</div>
+            <div>
+              <strong>Ekstraksi Fitur CNN</strong><br>
+              <span style="font-size:12px;color:var(--text-muted-c);">MobileNetV2 ekstrak fitur lewat 16 Inverted Residual Block</span>
+            </div>
+          </div>
+          <div class="cnn-step">
+            <div class="cnn-step-num">4</div>
+            <div>
+              <strong>Klasifikasi Softmax</strong><br>
+              <span style="font-size:12px;color:var(--text-muted-c);">Dense 128 + Dropout 0.4 menghasilkan probabilitas 15 kelas</span>
+            </div>
+          </div>
+          <div class="cnn-step">
+            <div class="cnn-step-num">5</div>
+            <div>
+              <strong>Hasil Prediksi</strong><br>
+              <span style="font-size:12px;color:var(--text-muted-c);">Ditampilkan beserta confidence, distribusi probabilitas, dan info sayuran</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA klasifikasi -->
+  <div class="col-12 col-md-6 d-flex flex-column gap-4">
+    <div class="card" style="background:var(--primary);border:none;">
+      <div class="card-body text-center" style="padding:28px 20px;">
+        <div style="font-size:40px;margin-bottom:12px;">&#127807;</div>
+        <div style="font-size:18px;font-weight:800;color:#fff;margin-bottom:8px;">Mulai Klasifikasi</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.78);margin-bottom:20px;line-height:1.5;">
+          Upload foto sayuran dan biarkan CNN mengidentifikasinya secara otomatis dengan akurasi {{ eval_data.akurasi_val }}%
+        </div>
+        <a href="{{ url_for('klasifikasi') }}" class="btn btn-sm"
+           style="background:#fff;color:var(--primary);font-weight:700;border-radius:8px;padding:10px 24px;width:100%;">
+          <i class="bi bi-camera-fill me-2"></i>Upload Foto Sekarang
+        </a>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

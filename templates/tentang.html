@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% block title %}Tentang{% endblock %}
+{% block breadcrumb %}
+<a href="{{ url_for('dashboard') }}" class="text-muted">Dashboard</a>
+<span class="breadcrumb-sep">/</span>
+<span class="breadcrumb-current">Tentang</span>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Tentang VeggieScan</h1>
+  <p class="page-subtitle">Informasi sistem, arsitektur CNN, teknologi, dan referensi yang digunakan</p>
+</div>
+
+<div class="row g-4">
+  <div class="col-12 col-lg-7 d-flex flex-column gap-4">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><i class="bi bi-flower1"></i> Tentang Sistem</div>
+      </div>
+      <div class="card-body">
+        <div class="about-section">
+          <h3>Deskripsi</h3>
+          <p>
+            VeggieScan adalah sistem klasifikasi sayuran berbasis web yang menggunakan
+            <strong>Convolutional Neural Network (CNN) MobileNetV2</strong> dengan metode
+            <em>Transfer Learning</em> untuk mengidentifikasi 15 jenis sayuran dari foto yang diunggah.
+            Sistem dikembangkan sebagai tugas praktikum mata kuliah Kecerdasan Buatan,
+            menerapkan konsep <em>deep learning</em> dan <em>computer vision</em> secara nyata.
+          </p>
+        </div>
+        <div class="about-section">
+          <h3>Cara Kerja CNN</h3>
+          <p>
+            Gambar yang diunggah diubah ukurannya menjadi 128x128 piksel dan dinormalisasi ke rentang 0 hingga 1.
+            CNN MobileNetV2 kemudian mengekstrak fitur visual secara hierarkis melalui 16 inverted residual block:
+            layer awal menangkap tepi dan tekstur, layer tengah menangkap pola kompleks, dan layer akhir
+            merepresentasikan bentuk keseluruhan sayuran. Global Average Pooling meringkas fitur spasial,
+            lalu Dense layer 128 node dengan Dropout 0.4 mengklasifikasikan ke 15 kelas via Softmax.
+          </p>
+        </div>
+        <div class="about-section" style="margin-bottom:0;">
+          <h3>Fitur Aplikasi</h3>
+          <div class="row g-2">
+            {% set fitur_list = [
+              ('bi-camera-fill',       'Klasifikasi Real-Time',           'Upload foto, CNN memprediksi dalam hitungan detik'),
+              ('bi-bar-chart-fill',    'Distribusi Probabilitas',          'Softmax output semua 15 kelas ditampilkan'),
+              ('bi-graph-up',          'Kurva Training Asli',              'Grafik accuracy dan loss dari training nyata'),
+              ('bi-grid-3x3',          'Confusion Matrix',                 'Heatmap performa per kelas pada data test'),
+              ('bi-table',             'Classification Report',            'Precision, Recall, F1-Score per kelas'),
+              ('bi-phone',             'Responsif Mobile',                 'Tampilan optimal di semua ukuran layar')
+            ] %}
+            {% for icon, nama, ket in fitur_list %}
+            <div class="col-12 col-md-6">
+              <div class="d-flex gap-3 p-3" style="background:var(--bg);border-radius:var(--radius-sm);">
+                <div style="width:34px;height:34px;background:var(--primary-light);border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <i class="bi {{ icon }}" style="color:var(--primary);font-size:15px;"></i>
+                </div>
+                <div>
+                  <div style="font-size:13px;font-weight:700;color:var(--text-primary);">{{ nama }}</div>
+                  <div style="font-size:12px;color:var(--text-muted-c);">{{ ket }}</div>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><i class="bi bi-journal-bookmark-fill"></i> Referensi</div>
+      </div>
+      <div class="card-body">
+        <div class="ref-card">
+          <div class="ref-icon"><i class="bi bi-database"></i></div>
+          <div>
+            <div class="ref-title">Vegetable Image Dataset</div>
+            <div class="ref-meta">Ahmed, M. (2021). Kaggle. CC BY 4.0.<br/>
+              <a href="https://www.kaggle.com/datasets/misrakahmed/vegetable-image-dataset" target="_blank" style="color:var(--primary);">
+                kaggle.com/datasets/misrakahmed/vegetable-image-dataset
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="ref-card">
+          <div class="ref-icon"><i class="bi bi-book"></i></div>
+          <div>
+            <div class="ref-title">MobileNetV2: Inverted Residuals and Linear Bottlenecks</div>
+            <div class="ref-meta">Sandler, M., Howard, A., Zhu, M., Zhmoginov, A., &amp; Chen, L. C. (2018).
+              <em>Proceedings of the IEEE CVPR</em>, pp. 4510-4520. DOI: 10.1109/CVPR.2018.00474
+            </div>
+          </div>
+        </div>
+        <div class="ref-card">
+          <div class="ref-icon"><i class="bi bi-file-text"></i></div>
+          <div>
+            <div class="ref-title">Deep Learning-based Vegetable Image Classification</div>
+            <div class="ref-meta">Sultana, N., Shorif, S. B., Akter, M., &amp; Uddin, M. S. (2022).
+              DCNN-based vegetable image classification using transfer learning.
+              <em>International Journal of Computational Intelligence and Applications</em>.
+            </div>
+          </div>
+        </div>
+        <div class="ref-card">
+          <div class="ref-icon"><i class="bi bi-book"></i></div>
+          <div>
+            <div class="ref-title">TensorFlow/Keras Documentation</div>
+            <div class="ref-meta">Abadi, M., et al. (2015). TensorFlow: Large-Scale Machine Learning on Heterogeneous Systems.<br/>
+              <a href="https://www.tensorflow.org" target="_blank" style="color:var(--primary);">tensorflow.org</a>
+            </div>
+          </div>
+        </div>
+        <div class="ref-card" style="margin-bottom:0;">
+          <div class="ref-icon"><i class="bi bi-globe"></i></div>
+          <div>
+            <div class="ref-title">Flask Web Framework</div>
+            <div class="ref-meta">Pallets Projects. (2023). Flask 3.0 Documentation.<br/>
+              <a href="https://flask.palletsprojects.com" target="_blank" style="color:var(--primary);">flask.palletsprojects.com</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-5 d-flex flex-column gap-4">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><i class="bi bi-stack"></i> Stack Teknologi</div>
+      </div>
+      <div class="card-body">
+        {% set stack = [
+          ('bi-filetype-py',    'Python 3.11',         'Bahasa pemrograman utama',                    '#3B82F6'),
+          ('bi-hurricane',      'Flask 3.0',            'Web framework backend ringan',                '#666'),
+          ('bi-cpu-fill',       'TensorFlow / Keras',   'Framework deep learning CNN',                 '#FF6F00'),
+          ('bi-layers-fill',    'MobileNetV2',          'Arsitektur CNN pre-trained ImageNet',          '#2D8653'),
+          ('bi-eye-fill',       'OpenCV',               'Preprocessing gambar sebelum inferensi',      '#1E6B3F'),
+          ('bi-bootstrap-fill', 'Bootstrap 5.3',        'Framework CSS responsif',                     '#7952B3'),
+          ('bi-bar-chart-fill', 'ApexCharts',           'Visualisasi grafik training dan evaluasi',    '#E05252'),
+          ('bi-git',            'GitHub',               'Version control dan portofolio publik',       '#333'),
+        ] %}
+        <div class="d-flex flex-column gap-2">
+          {% for icon, nama, ket, warna in stack %}
+          <div class="d-flex align-items-center gap-3 p-2" style="border-radius:var(--radius-sm);border:1px solid var(--border-light);">
+            <div style="width:34px;height:34px;border-radius:7px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <i class="bi {{ icon }}" style="font-size:16px;color:{{ warna }};"></i>
+            </div>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:var(--text-primary);">{{ nama }}</div>
+              <div style="font-size:11.5px;color:var(--text-muted-c);">{{ ket }}</div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><i class="bi bi-sliders"></i> Hyperparameter CNN</div>
+      </div>
+      <div class="card-body p-0">
+        {% set params = [
+          ('Arsitektur',    'MobileNetV2 alpha=0.50',      'Ringan, cocok untuk CPU training'),
+          ('Input Size',    '128 x 128 x 3',               'RGB, dinormalisasi ke 0-1'),
+          ('Batch Size',    '32',                           'Jumlah sampel per iterasi gradient'),
+          ('Fase 1 LR',     '0.001 (Adam)',                 'Learning rate base model frozen'),
+          ('Fase 2 LR',     '0.0001 (Adam)',                'Learning rate fine-tuning'),
+          ('Dropout',       '0.4',                          'Regularisasi pada Dense layer'),
+          ('Dense',         '128 + BatchNorm + ReLU',       'Kepala klasifikasi tambahan'),
+          ('Epochs F1',     '7 (EarlyStopping)',            'Berhenti otomatis jika stagnan'),
+          ('Epochs F2',     '8 (Fine-tuning)',              'Unfreeze 20 layer terakhir'),
+          ('Best Val Acc',  '99.73% (epoch ke-12)',         'Model terbaik yang disimpan'),
+        ] %}
+        {% for param, val, ket in params %}
+        <div class="info-row" style="padding:9px 20px;">
+          <span class="info-row-label">
+            <code style="font-size:11px;background:var(--bg);padding:1px 5px;border-radius:3px;">{{ param }}</code>
+          </span>
+          <div>
+            <div class="info-row-val fw-bold" style="font-size:12.5px;">{{ val }}</div>
+            <div style="font-size:11px;color:var(--text-muted-c);">{{ ket }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

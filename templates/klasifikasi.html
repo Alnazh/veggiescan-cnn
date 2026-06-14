@@ -1,0 +1,422 @@
+{% extends "base.html" %}
+{% block title %}Klasifikasi Sayuran{% endblock %}
+{% block breadcrumb %}
+<a href="{{ url_for('dashboard') }}" class="text-muted">Dashboard</a>
+<span class="breadcrumb-sep">/</span>
+<span class="breadcrumb-current">Klasifikasi</span>
+{% endblock %}
+
+{% block content %}
+<div id="viewUpload">
+  <div class="page-header">
+    <h1 class="page-title">Klasifikasi Sayuran</h1>
+    <p class="page-subtitle">Upload foto sayuran untuk prediksi otomatis menggunakan CNN MobileNetV2</p>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-12 col-md-6">
+      <div class="card h-100">
+        <div class="card-header">
+          <div class="card-title"><i class="bi bi-upload"></i> Upload Foto Sayuran</div>
+        </div>
+        <div class="card-body">
+          <div id="uploadZone" class="upload-zone" onclick="document.getElementById('fileInput').click()">
+            <div class="upload-icon"><i class="bi bi-leaf" style="font-size:30px;color:var(--primary);"></i></div>
+            <div class="upload-title">Seret dan lepas foto di sini</div>
+            <div class="upload-subtitle">atau klik untuk memilih file</div>
+            <span class="btn btn-outline-secondary btn-sm mt-1"><i class="bi bi-folder2-open"></i> Pilih File</span>
+            <div class="upload-meta mt-2">Format: JPG, PNG, WebP &nbsp;|&nbsp; Maks: 5 MB</div>
+          </div>
+
+          <div id="previewSection" class="d-none mt-3">
+            <div class="d-flex align-items-center gap-3 p-3 rounded" style="background:var(--bg);border:1px solid var(--border);">
+              <div style="width:48px;height:48px;background:var(--primary-light);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <i class="bi bi-file-earmark-image" style="font-size:22px;color:var(--primary);"></i>
+              </div>
+              <div class="flex-grow-1 overflow-hidden">
+                <div id="previewFilename" class="fw-bold text-truncate" style="font-size:13px;"></div>
+                <div id="previewSize" class="text-muted" style="font-size:12px;"></div>
+              </div>
+              <button class="preview-clear flex-shrink-0" id="clearBtn"><i class="bi bi-x"></i></button>
+            </div>
+          </div>
+
+          <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.webp,.tif,.tiff" class="d-none"/>
+          <div class="mt-3">
+            <button id="identifyBtn" class="btn btn-primary w-100" disabled>
+              <i class="bi bi-search me-2"></i> Klasifikasi dengan CNN
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-6">
+      <div class="card h-100">
+        <div class="card-header">
+          <div class="card-title"><i class="bi bi-lightbulb-fill"></i> Panduan Foto</div>
+        </div>
+        <div class="card-body">
+          <div class="guide-list mb-3">
+            <div class="guide-item">
+              <div class="guide-dot ok"><i class="bi bi-check" style="font-size:10px;"></i></div>
+              <div class="guide-text"><strong>Foto Jelas</strong> &mdash; Seluruh sayuran terlihat dan tidak buram</div>
+            </div>
+            <div class="guide-item">
+              <div class="guide-dot ok"><i class="bi bi-check" style="font-size:10px;"></i></div>
+              <div class="guide-text"><strong>Pencahayaan Cukup</strong> &mdash; Hindari foto terlalu gelap atau backlight</div>
+            </div>
+            <div class="guide-item">
+              <div class="guide-dot ok"><i class="bi bi-check" style="font-size:10px;"></i></div>
+              <div class="guide-text"><strong>Satu Jenis per Foto</strong> &mdash; CNN bekerja optimal dengan satu objek sayuran</div>
+            </div>
+            <div class="guide-item">
+              <div class="guide-dot bad"><i class="bi bi-x" style="font-size:10px;"></i></div>
+              <div class="guide-text"><strong>Hindari Filter Foto</strong> &mdash; Filter mengubah distribusi piksel dan menurunkan akurasi</div>
+            </div>
+            <div class="guide-item">
+              <div class="guide-dot bad"><i class="bi bi-x" style="font-size:10px;"></i></div>
+              <div class="guide-text"><strong>Hindari Foto Terlalu Jauh</strong> &mdash; Pastikan sayuran mengisi sebagian besar frame</div>
+            </div>
+          </div>
+          <div style="background:var(--primary-light);border-radius:var(--radius-md);padding:14px;">
+            <div style="font-size:12.5px;font-weight:700;color:var(--primary-dark);margin-bottom:8px;">
+              <i class="bi bi-cpu-fill"></i> Sayuran yang dapat dikenali:
+            </div>
+            <div class="d-flex flex-wrap gap-1">
+              {% for sv in label_sayuran %}
+              <span style="font-size:11px;background:white;color:var(--primary-dark);padding:3px 8px;border-radius:4px;font-weight:600;">{{ sv.nama_id }}</span>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== HASIL KLASIFIKASI ===================== -->
+<div id="viewResult" class="d-none">
+  <div class="d-flex align-items-center gap-3 mb-4">
+    <button id="backBtn" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i> Kembali</button>
+    <div>
+      <h1 class="page-title mb-0">Hasil Klasifikasi CNN</h1>
+      <p class="page-subtitle mb-0">Prediksi menggunakan CNN MobileNetV2 &middot; Transfer Learning</p>
+    </div>
+  </div>
+
+  <!-- Baris 1: Gambar + Info Utama -->
+  <div class="row g-4 mb-4">
+
+    <!-- Kolom Gambar (tengah) -->
+    <div class="col-12 col-md-4">
+      <div class="card h-100">
+        <div class="card-header">
+          <div class="card-title"><i class="bi bi-image-fill"></i> Gambar Dianalisis</div>
+          <span id="confBadge" class="result-badge high">Tinggi</span>
+        </div>
+        <div class="card-body d-flex flex-column align-items-center justify-content-center" style="gap:14px;">
+          <div class="result-img-wrap">
+            <img id="resultImg" src="" alt="Preview sayuran" class="result-img-center"/>
+          </div>
+          <div class="text-center">
+            <div id="resultNama" class="result-main-name"></div>
+            <div id="resultNamaId" class="result-sub-name"></div>
+            <div id="resultLatin" class="result-latin"></div>
+          </div>
+          <div class="w-100">
+            <div class="d-flex justify-content-between mb-1">
+              <span style="font-size:12px;font-weight:700;color:var(--text-secondary);">Confidence CNN</span>
+              <span id="confPct" style="font-size:14px;font-weight:800;color:var(--primary);"></span>
+            </div>
+            <div class="confidence-bar-wrap">
+              <div class="confidence-bar-fill" id="confBar" style="width:0%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kolom Info Detail -->
+    <div class="col-12 col-md-8">
+      <div class="card h-100">
+        <div class="card-header">
+          <div class="card-title"><i class="bi bi-info-circle-fill"></i> Informasi Sayuran</div>
+        </div>
+        <div class="card-body">
+          <div class="row g-3 mb-3">
+            <div class="col-6">
+              <div class="detail-chip">
+                <div class="detail-chip-label"><i class="bi bi-tag-fill"></i> Kategori</div>
+                <div class="detail-chip-val" id="resultKategori"></div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="detail-chip">
+                <div class="detail-chip-label"><i class="bi bi-palette-fill"></i> Ciri Visual</div>
+                <div class="detail-chip-val" id="resultWarna"></div>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="detail-chip">
+                <div class="detail-chip-label"><i class="bi bi-heart-pulse-fill"></i> Manfaat Kesehatan</div>
+                <div class="detail-chip-val" id="resultManfaat"></div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="detail-chip">
+                <div class="detail-chip-label"><i class="bi bi-flower1"></i> Nama Latin</div>
+                <div class="detail-chip-val fst-italic" id="resultLatinInfo"></div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="detail-chip">
+                <div class="detail-chip-label"><i class="bi bi-cpu-fill"></i> Mode Analisis</div>
+                <div class="detail-chip-val" id="resultMode"></div>
+              </div>
+            </div>
+          </div>
+          <div style="background:var(--primary-light);border-radius:var(--radius-md);padding:14px;">
+            <div style="font-size:12px;font-weight:700;color:var(--primary-dark);margin-bottom:6px;"><i class="bi bi-book-fill"></i> Deskripsi</div>
+            <p id="resultDeskripsi" style="font-size:13px;color:var(--primary-dark);line-height:1.65;margin:0;"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Baris 2: Probabilitas + Nutrisi Singkat -->
+  <div class="row g-4">
+    <div class="col-12 col-lg-7">
+      <div class="card h-100">
+        <div class="card-header">
+          <div class="card-title"><i class="bi bi-bar-chart-fill"></i> Distribusi Probabilitas CNN</div>
+        </div>
+        <div class="card-body">
+          <div id="probaContainer"></div>
+          <div class="chart-caption" id="probaCaption">
+            Probabilitas tiap kelas dihasilkan oleh layer Softmax pada output CNN.
+            Nilai tertinggi menunjukkan keyakinan model terhadap kelas hasil prediksi.
+            Seluruh probabilitas berjumlah 100%.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-5">
+      <div class="card h-100">
+        <div class="card-header">
+          <div class="card-title"><i class="bi bi-lightning-fill"></i> Ringkasan Analisis CNN</div>
+        </div>
+        <div class="card-body">
+          <div class="analysis-summary" id="analysisSummary">
+            <!-- diisi JS -->
+          </div>
+          <div class="mt-3 p-3" style="background:var(--bg);border-radius:var(--radius-md);">
+            <div style="font-size:12px;font-weight:700;color:var(--text-secondary);margin-bottom:8px;"><i class="bi bi-diagram-3-fill"></i> Proses CNN</div>
+            <div class="cnn-step-list">
+              <div class="cnn-step"><span class="cnn-step-num">1</span><span class="cnn-step-text">Gambar diubah ke <strong>128×128 px</strong>, dinormalisasi 0–1</span></div>
+              <div class="cnn-step"><span class="cnn-step-num">2</span><span class="cnn-step-text">MobileNetV2 ekstrak fitur lewat <strong>16 Inverted Residual Block</strong></span></div>
+              <div class="cnn-step"><span class="cnn-step-num">3</span><span class="cnn-step-text"><strong>Global Average Pooling</strong> meringkas fitur spasial</span></div>
+              <div class="cnn-step"><span class="cnn-step-num">4</span><span class="cnn-step-text">Dense 128 + Dropout → <strong>Softmax 15 kelas</strong></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Distribusi Probabilitas: override & tambahan ── */
+.proba-bar-fill.noise {
+  background: var(--border, #dde3dc);
+}
+.proba-noise-label {
+  color: var(--text-muted, #aaa) !important;
+  font-weight: 400 !important;
+}
+.proba-noise-val {
+  color: var(--text-muted, #aaa) !important;
+  font-size: 11px !important;
+  font-style: italic;
+}
+.proba-bar-fill.top { background: var(--primary, #2d7a4f); }
+
+/* Fix: label tidak meluap, value tidak wrap */
+.proba-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 90px;
+  max-width: 110px;
+  flex-shrink: 0;
+}
+.proba-value {
+  white-space: nowrap;
+  min-width: 56px;
+  text-align: right;
+  flex-shrink: 0;
+}
+.proba-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.proba-bar-wrap {
+  flex: 1;
+  min-width: 0;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const API_URL = '/api/predict';
+let selectedFile = null;
+
+const uploadZone = document.getElementById('uploadZone');
+const fileInput  = document.getElementById('fileInput');
+const previewSec = document.getElementById('previewSection');
+const prevName   = document.getElementById('previewFilename');
+const prevSize   = document.getElementById('previewSize');
+const clearBtn   = document.getElementById('clearBtn');
+const identifyBtn= document.getElementById('identifyBtn');
+const backBtn    = document.getElementById('backBtn');
+const viewUpload = document.getElementById('viewUpload');
+const viewResult = document.getElementById('viewResult');
+const overlay    = document.getElementById('loadingOverlay');
+
+function formatBytes(b) {
+  if (b < 1024) return b + ' B';
+  if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
+  return (b/1048576).toFixed(1) + ' MB';
+}
+function setFile(file) {
+  selectedFile = file;
+  previewSec.classList.remove('d-none');
+  prevName.textContent = file.name;
+  prevSize.textContent = formatBytes(file.size);
+  identifyBtn.disabled = false;
+}
+
+fileInput.addEventListener('change', e => { if (e.target.files[0]) setFile(e.target.files[0]); });
+clearBtn.addEventListener('click', e => { e.stopPropagation(); selectedFile = null; fileInput.value = ''; previewSec.classList.add('d-none'); identifyBtn.disabled = true; });
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+uploadZone.addEventListener('drop', e => { e.preventDefault(); uploadZone.classList.remove('dragover'); if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]); });
+backBtn.addEventListener('click', () => { viewResult.classList.add('d-none'); viewUpload.classList.remove('d-none'); });
+
+identifyBtn.addEventListener('click', async () => {
+  if (!selectedFile) return;
+  overlay.classList.add('active');
+  const fd = new FormData();
+  fd.append('file', selectedFile);
+  try {
+    const res = await fetch(API_URL, { method: 'POST', body: fd });
+    const data = await res.json();
+    overlay.classList.remove('active');
+    if (!data.success) { alert('Error: ' + (data.error || 'Unknown')); return; }
+    renderResult(data);
+    viewUpload.classList.add('d-none');
+    viewResult.classList.remove('d-none');
+    window.scrollTo(0, 0);
+  } catch (err) {
+    overlay.classList.remove('active');
+    alert('Gagal menghubungi server: ' + err.message);
+  }
+});
+
+function renderResult(d) {
+  document.getElementById('resultImg').src = d.preview_url;
+  document.getElementById('resultNama').textContent = d.nama;
+  document.getElementById('resultNamaId').textContent = d.nama_id;
+  document.getElementById('resultLatin').textContent = d.latin;
+
+  const conf = d.confidence;
+  const badge = document.getElementById('confBadge');
+  document.getElementById('confPct').textContent = conf.toFixed(2) + '%';
+  document.getElementById('confBar').style.width = Math.min(conf, 100) + '%';
+
+  if (conf >= 75) { badge.className = 'result-badge high'; badge.innerHTML = '<i class="bi bi-check-circle-fill"></i> Keyakinan Tinggi'; }
+  else if (conf >= 50) { badge.className = 'result-badge mid'; badge.innerHTML = '<i class="bi bi-dash-circle-fill"></i> Keyakinan Sedang'; }
+  else { badge.className = 'result-badge low'; badge.innerHTML = '<i class="bi bi-exclamation-circle-fill"></i> Keyakinan Rendah'; }
+
+  document.getElementById('resultKategori').textContent = d.kategori;
+  document.getElementById('resultWarna').textContent = d.warna_ciri;
+  document.getElementById('resultManfaat').textContent = d.manfaat;
+  document.getElementById('resultLatinInfo').textContent = d.latin;
+  document.getElementById('resultDeskripsi').textContent = d.deskripsi;
+  document.getElementById('resultMode').textContent = d.mode === 'cnn' ? 'CNN MobileNetV2 (Real)' : 'Demo Mode';
+
+  // Distribusi Probabilitas
+  const probaC = document.getElementById('probaContainer');
+  probaC.innerHTML = '';
+
+  // Nilai 0.00 dari backend memang benar-benar 0 (tidak ada kemiripan visual)
+  // Nilai > 0 sekecil apapun tampilkan apa adanya
+  function fmtP(v) {
+    if (v === 0)   return '0%';
+    if (v >= 10)   return v.toFixed(2) + '%';   // 96.40%, 99.90% — tidak pernah jadi 100.0%
+    if (v >= 1)    return v.toFixed(2) + '%';   // 2.70%, 8.80%
+    if (v >= 0.1)  return v.toFixed(2) + '%';   // 0.04%, 0.08%
+    return v.toFixed(2) + '%';
+  }
+
+  const maxP = Math.max(...d.probabilities);
+  const sorted = d.probabilities
+    .map((p, i) => ({ p, i, name: d.nama_kelas[i] }))
+    .sort((a, b) => b.p - a.p);
+
+  // Hanya tampilkan top-5, sisanya collapse
+  const TOP_N = 5;
+
+  sorted.forEach((item, rank) => {
+    const isTop   = item.p === maxP;
+    const isNoise = item.p === 0;  // 0 persis = tidak ada kemiripan visual
+
+    // Lebar bar dinormalisasi relatif ke nilai tertinggi
+    // sehingga bar kecil tetap terlihat proporsional
+    const barWidthPct = maxP > 0 ? (item.p / maxP) * 100 : 0;
+
+    // Kelas noise (tidak relevan): bar sangat kecil & abu-abu
+    const barClass  = isTop ? 'top' : isNoise ? 'noise' : '';
+    const lblClass  = isTop ? 'proba-top-label' : isNoise ? 'proba-noise-label' : '';
+    const valClass  = isTop ? 'proba-top-val'   : isNoise ? 'proba-noise-val'   : '';
+
+    // Sembunyikan baris rank > TOP_N secara default
+    const hiddenClass = rank >= TOP_N ? 'proba-hidden' : '';
+
+    const div = document.createElement('div');
+    div.className = `proba-item ${hiddenClass}`;
+    div.innerHTML = `
+      <span class="proba-label ${lblClass}" title="${item.name}">${item.name}</span>
+      <div class="proba-bar-wrap">
+        <div class="proba-bar-fill ${barClass}" style="width:${barWidthPct.toFixed(2)}%"></div>
+      </div>
+      <span class="proba-value ${valClass}">${fmtP(item.p)}</span>`;
+    probaC.appendChild(div);
+  });
+
+  // Update caption dengan nilai aktual
+  document.getElementById('probaCaption').innerHTML =
+    `Probabilitas tertinggi: <strong>${d.nama_id}</strong> dengan nilai <strong>${conf.toFixed(2)}%</strong>. ` +
+    `Dihasilkan oleh layer Softmax CNN — seluruh nilai menjumlah tepat 100%.`;
+
+  // Ringkasan Analisis
+  const topN = sorted.slice(0,3);
+  const secondConf = topN[1] ? fmtP(topN[1].p) : '0.00';
+  const confLvl = conf >= 90 ? 'sangat tinggi' : conf >= 75 ? 'tinggi' : conf >= 50 ? 'sedang' : 'rendah';
+  document.getElementById('analysisSummary').innerHTML = `
+    <div class="summary-row"><span class="summary-label">Prediksi</span><span class="summary-val text-primary fw-bold">${d.nama_id}</span></div>
+    <div class="summary-row"><span class="summary-label">Confidence</span><span class="summary-val fw-bold">${conf.toFixed(2)}% <span class="badge-inline ${conf>=75?'high':conf>=50?'mid':'low'}">${confLvl}</span></span></div>
+    <div class="summary-row"><span class="summary-label">Kandidat ke-2</span><span class="summary-val">${topN[1]?topN[1].name+' ('+secondConf+'%)':'—'}</span></div>
+    <div class="summary-row"><span class="summary-label">Kandidat ke-3</span><span class="summary-val">${topN[2]?topN[2].name+' ('+fmtP(topN[2].p)+'%)':'—'}</span></div>
+    <div class="summary-row"><span class="summary-label">Total Kelas</span><span class="summary-val">15 sayuran</span></div>
+    <div class="summary-row"><span class="summary-label">Model</span><span class="summary-val">MobileNetV2 (α=0.50)</span></div>
+  `;
+}
+</script>
+{% endblock %}

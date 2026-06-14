@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+{% block title %}Evaluasi Model{% endblock %}
+{% block breadcrumb %}
+<a href="{{ url_for('dashboard') }}" class="text-muted">Dashboard</a>
+<span class="breadcrumb-sep">/</span>
+<span class="breadcrumb-current">Evaluasi Model</span>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Evaluasi Model CNN</h1>
+  <p class="page-subtitle">
+    Hasil pelatihan CNN MobileNetV2 selama {{ eval_data.epochs_dilatih }} epoch
+    (Fase 1: {{ eval_data.fase1_epochs }} epoch frozen + Fase 2: {{ eval_data.fase2_epochs }} epoch fine-tuning)
+  </p>
+</div>
+
+<!-- Statistik ringkasan -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon green"><i class="bi bi-trophy-fill" style="font-size:22px;color:var(--success-color);"></i></div>
+      <div><div class="stat-value">{{ eval_data.akurasi_val }}%</div><div class="stat-label">Val Accuracy Terbaik</div></div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon green"><i class="bi bi-check-circle-fill" style="font-size:22px;color:var(--primary);"></i></div>
+      <div><div class="stat-value">{{ eval_data.akurasi }}%</div><div class="stat-label">Train Accuracy Akhir</div></div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon orange"><i class="bi bi-arrow-down-circle-fill" style="font-size:22px;color:var(--warning-color);"></i></div>
+      <div><div class="stat-value">{{ eval_data.val_loss }}</div><div class="stat-label">Val Loss Akhir</div></div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon blue"><i class="bi bi-layers-fill" style="font-size:22px;color:var(--info-color);"></i></div>
+      <div><div class="stat-value">{{ eval_data.epochs_dilatih }}</div><div class="stat-label">Total Epochs</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Kurva Akurasi dan Loss -->
+<div class="row g-4 mb-4">
+  <div class="col-12 col-lg-6">
+    <div class="card h-100">
+      <div class="card-header">
+        <div class="card-title"><i class="bi bi-graph-up"></i> Kurva Akurasi (Training vs Validasi)</div>
+      </div>
+      <div class="card-body">
+        <div id="accChart" style="min-height:250px;"></div>
+        <div class="chart-caption">
+          Fase 1 (epoch 1&ndash;{{ eval_data.fase1_epochs }}): base model dibekukan, hanya kepala klasifikasi yang dilatih.
+          Fase 2 (epoch {{ eval_data.fase1_epochs|int + 1 }}&ndash;{{ eval_data.epochs_dilatih }}): fine-tuning 20 layer terakhir.
+          Akurasi validasi terbaik <strong>{{ eval_data.akurasi_val }}%</strong>.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-6">
+    <div class="card h-100">
+      <div class="card-header">
+        <div class="card-title"><i class="bi bi-arrow-down-circle"></i> Kurva Loss (Training vs Validasi)</div>
+      </div>
+      <div class="card-body">
+        <div id="lossChart" style="min-height:250px;"></div>
+        <div class="chart-caption">
+          Loss turun drastis di Fase 1. Lonjakan kecil di awal Fase 2 adalah efek normal fine-tuning.
+          Training loss akhir <strong>{{ eval_data.loss }}</strong>, val loss akhir <strong>{{ eval_data.val_loss }}</strong>.
+          Gap kecil menunjukkan model tidak overfitting.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Confusion Matrix - menggunakan ApexCharts heatmap agar responsif dan fit di 100% zoom -->
+<div class="row g-4 mb-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><i class="bi bi-grid-3x3-gap-fill"></i> Confusion Matrix (Data Test)</div>
+        <span style="font-size:11.5px;color:var(--text-muted-c);">200 sampel per kelas &middot; Prediksi vs Label Aktual</span>
+      </div>
+      <div class="card-body">
+        <!-- Tabel CM yang compact dan responsif -->
+        <div class="cm-outer">
+          <div class="cm-axis-label-top">Prediksi</div>
+          <div class="cm-inner">
+            <div class="cm-axis-label-side">Aktual</div>
+            <div class="cm-scroll-area">
+              <table class="cm-table" id="cmTable"></table>
+            </div>
+          </div>
+        </div>
+        <!-- Legenda warna -->
+        <div class="cm-color-legend mt-3">
+          <div class="cm-legend-item">
+            <span class="cm-legend-swatch" style="background:rgba(45,134,83,0.9);"></span>
+            <span>Prediksi Benar (diagonal)</span>
+          </div>
+          <div class="cm-legend-item">
+            <span class="cm-legend-swatch" style="background:rgba(224,82,82,0.6);"></span>
+            <span>Prediksi Salah</span>
+          </div>
+          <div class="cm-legend-item">
+            <span class="cm-legend-swatch" style="background:#F4F7F5;border:1px solid #D9E8DF;"></span>
+            <span>Nol kesalahan</span>
+          </div>
+        </div>
+        <div class="chart-caption">
+          Diagonal utama (hijau) menunjukkan prediksi benar per kelas.
+          Hampir seluruh kelas diklasifikasi sempurna (200/200).
+          Kesalahan kecil hanya pada kelas yang memiliki kemiripan visual,
+          seperti Pare&ndash;Paprika dan Pepaya Muda&ndash;Tomat.
+          Total kesalahan hanya <strong>7 sampel</strong> dari 3.000 sampel uji.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Laporan Klasifikasi per Kelas -->
+<div class="row g-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><i class="bi bi-table"></i> Laporan Klasifikasi per Kelas</div>
+        <span style="font-size:11.5px;color:var(--text-muted-c);">Precision &middot; Recall &middot; F1-Score</span>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="eval-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Kelas Sayuran</th>
+                <th>Nama Ilmiah</th>
+                <th>Precision</th>
+                <th>Recall</th>
+                <th>F1-Score</th>
+                <th>Support</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for sv in label_sayuran %}
+              {% set rep = eval_data.classification_report.get(sv.nama_id, {}) %}
+              {% set f1 = rep.get('f1_score', 0) %}
+              <tr>
+                <td style="color:var(--text-muted-c);font-size:12px;">{{ "%02d" % loop.index }}</td>
+                <td>
+                  <div style="font-weight:700;font-size:13px;">{{ sv.nama_id }}</div>
+                  <div style="font-size:11px;color:var(--text-muted-c);">{{ sv.nama }}</div>
+                </td>
+                <td style="font-size:12px;font-style:italic;color:var(--text-muted-c);">{{ sv.latin }}</td>
+                <td><span class="metric-pill {% if rep.get('precision',0) >= 99 %}high{% elif rep.get('precision',0) >= 90 %}mid{% else %}low{% endif %}">{{ rep.get('precision', 0) }}%</span></td>
+                <td><span class="metric-pill {% if rep.get('recall',0) >= 99 %}high{% elif rep.get('recall',0) >= 90 %}mid{% else %}low{% endif %}">{{ rep.get('recall', 0) }}%</span></td>
+                <td><span class="metric-pill {% if f1 >= 99 %}high{% elif f1 >= 90 %}mid{% else %}low{% endif %}">{{ f1 }}%</span></td>
+                <td style="font-size:13px;color:var(--text-secondary);">{{ rep.get('support', 0) }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div class="p-3" style="background:var(--bg);border-top:1px solid var(--border-light);">
+          <p style="font-size:12.5px;color:var(--text-secondary);margin:0;line-height:1.6;">
+            <strong>Precision</strong>: dari semua yang diprediksi kelas X, berapa yang benar. &nbsp;
+            <strong>Recall</strong>: dari semua sampel kelas X, berapa yang berhasil terdeteksi. &nbsp;
+            <strong>F1-Score</strong>: rata-rata harmonik Precision dan Recall. Nilai di atas 99% menunjukkan performa CNN yang sangat baik.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* ===== DATA ===== */
+const evalData    = {{ eval_data | tojson }};
+const labelSayuran= {{ label_sayuran | tojson }};
+const namaKelas   = labelSayuran.map(s => s.nama_id);
+const hist        = evalData.history;
+const fase1End    = evalData.fase1_epochs;
+const epochs      = Array.from({length: hist.accuracy.length}, (_, i) => i + 1);
+
+/* Anotasi garis pemisah fase 1 / fase 2 */
+const phaseAnnotation = {
+  xaxis: [{ x: fase1End + 0.5, borderColor: '#8FA899', borderWidth: 2, strokeDashArray: 5,
+    label: { text: 'Fine-tune', style: { fontSize: '10px', color: '#5A7263', background: '#E8F5EE' } } }]
+};
+
+/* ===== KURVA AKURASI ===== */
+new ApexCharts(document.getElementById('accChart'), {
+  chart: { type: 'line', height: 250, toolbar: { show: false }, fontFamily: 'Plus Jakarta Sans, sans-serif' },
+  series: [
+    { name: 'Training', data: hist.accuracy },
+    { name: 'Validasi', data: hist.val_accuracy }
+  ],
+  xaxis: { categories: epochs, labels: { style: { fontSize: '11px' } }, title: { text: 'Epoch', style: { fontSize: '11px' } } },
+  yaxis: { min: 90, max: 101, labels: { formatter: v => v.toFixed(0) + '%', style: { fontSize: '11px' } } },
+  colors: ['#2D8653', '#F5A623'],
+  stroke: { width: 2.5, curve: 'smooth' },
+  annotations: phaseAnnotation,
+  legend: { position: 'top', fontSize: '12px' },
+  grid: { borderColor: '#EDF4F0' },
+  tooltip: { y: { formatter: v => v.toFixed(2) + '%' } }
+}).render();
+
+/* ===== KURVA LOSS ===== */
+new ApexCharts(document.getElementById('lossChart'), {
+  chart: { type: 'line', height: 250, toolbar: { show: false }, fontFamily: 'Plus Jakarta Sans, sans-serif' },
+  series: [
+    { name: 'Training Loss', data: hist.loss },
+    { name: 'Validation Loss', data: hist.val_loss }
+  ],
+  xaxis: { categories: epochs, labels: { style: { fontSize: '11px' } }, title: { text: 'Epoch', style: { fontSize: '11px' } } },
+  yaxis: { labels: { formatter: v => v.toFixed(3), style: { fontSize: '11px' } } },
+  colors: ['#2D8653', '#F5A623'],
+  stroke: { width: 2.5, curve: 'smooth' },
+  annotations: phaseAnnotation,
+  legend: { position: 'top', fontSize: '12px' },
+  grid: { borderColor: '#EDF4F0' },
+  tooltip: { y: { formatter: v => v.toFixed(4) } }
+}).render();
+
+/* ===== CONFUSION MATRIX (tabel HTML dengan pewarnaan) ===== */
+(function buildConfusionMatrix() {
+  const cm     = evalData.confusion_matrix;
+  const maxVal = 200;
+  const table  = document.getElementById('cmTable');
+
+  /* Header kolom dengan nama kelas diputar vertikal */
+  let html = '<thead><tr><th class="cm-th cm-corner">Aktual / Prediksi</th>';
+  namaKelas.forEach(name => {
+    html += `<th class="cm-th cm-hdr">${name}</th>`;
+  });
+  html += '</tr></thead><tbody>';
+
+  /* Baris data */
+  cm.forEach((row, i) => {
+    html += `<tr><th class="cm-th cm-row-hdr">${namaKelas[i]}</th>`;
+    row.forEach((val, j) => {
+      const isDiag    = i === j;
+      const intensity = val / maxVal;
+      let bg, color, fw;
+
+      if (isDiag) {
+        /* Diagonal = hijau (prediksi benar) */
+        bg    = `rgba(45,134,83,${0.25 + intensity * 0.72})`;
+        color = intensity > 0.45 ? '#fff' : '#1A5C32';
+        fw    = '700';
+      } else if (val > 0) {
+        /* Off-diagonal = merah muda (kesalahan) */
+        bg    = `rgba(224,82,82,${0.18 + intensity * 0.65})`;
+        color = intensity > 0.35 ? '#fff' : '#7F1D1D';
+        fw    = '600';
+      } else {
+        /* Nol = abu sangat terang */
+        bg    = '#F4F7F5';
+        color = '#C0D0C8';
+        fw    = '400';
+      }
+
+      html += `<td class="cm-cell" style="background:${bg};color:${color};font-weight:${fw};">${val}</td>`;
+    });
+    html += '</tr>';
+  });
+
+  html += '</tbody>';
+  table.innerHTML = html;
+})();
+</script>
+{% endblock %}

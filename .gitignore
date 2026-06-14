@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# Dataset (terlalu besar untuk GitHub)
+dataset/
+*.zip
+
+# Model (opsional — push jika ukuran < 100MB)
+# model/rf_model.pkl
+
+# Uploads
+static/img/uploads/*.jpg
+static/img/uploads/*.jpeg
+static/img/uploads/*.png
+static/img/uploads/*.webp
+
+# Environment
+.env
+.flaskenv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

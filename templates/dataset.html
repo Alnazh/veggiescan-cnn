@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+{% block title %}Dataset{% endblock %}
+{% block breadcrumb %}
+<a href="{{ url_for('dashboard') }}" class="text-muted">Dashboard</a>
+<span class="breadcrumb-sep">/</span>
+<span class="breadcrumb-current">Dataset</span>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Dataset</h1>
+  <p class="page-subtitle">Vegetable Image Dataset (Kaggle) &middot; 21.000+ gambar &middot; 15 kelas &middot; Sudah dipisah train/validation/test</p>
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-12 col-lg-8">
+    <div class="card h-100">
+      <div class="card-header">
+        <div class="card-title"><i class="bi bi-database-fill"></i> Tentang Dataset</div>
+        <a href="https://www.kaggle.com/datasets/misrakahmed/vegetable-image-dataset" target="_blank" class="btn btn-outline-primary btn-sm">
+          <i class="bi bi-box-arrow-up-right me-1"></i>Kaggle
+        </a>
+      </div>
+      <div class="card-body">
+        <div class="row g-3 mb-3">
+          <div class="col-6 col-md-3">
+            <div class="text-center p-3" style="background:var(--bg);border-radius:var(--radius-md);">
+              <div style="font-size:22px;font-weight:800;color:var(--primary);">21K+</div>
+              <div style="font-size:12px;color:var(--text-muted-c);">Total Gambar</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="text-center p-3" style="background:var(--bg);border-radius:var(--radius-md);">
+              <div style="font-size:22px;font-weight:800;color:var(--primary);">15</div>
+              <div style="font-size:12px;color:var(--text-muted-c);">Kelas Sayuran</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="text-center p-3" style="background:var(--bg);border-radius:var(--radius-md);">
+              <div style="font-size:22px;font-weight:800;color:var(--primary);">128px</div>
+              <div style="font-size:12px;color:var(--text-muted-c);">Resize untuk CNN</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="text-center p-3" style="background:var(--bg);border-radius:var(--radius-md);">
+              <div style="font-size:22px;font-weight:800;color:var(--primary);">~1.4K</div>
+              <div style="font-size:12px;color:var(--text-muted-c);">Gambar per Kelas</div>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:14px;color:var(--text-secondary);line-height:1.7;margin-bottom:14px;">
+          Dataset ini berisi <strong>21.000+ gambar</strong> dari 15 jenis sayuran yang sudah dilabeli dan distrukturkan
+          ke dalam folder <code style="font-size:12px;background:var(--bg);padding:1px 5px;border-radius:3px;">train/</code>,
+          <code style="font-size:12px;background:var(--bg);padding:1px 5px;border-radius:3px;">validation/</code>, dan
+          <code style="font-size:12px;background:var(--bg);padding:1px 5px;border-radius:3px;">test/</code>.
+          Dipublikasikan oleh <strong>Misrak Ahmed</strong> di Kaggle, dataset ini sangat bersih
+          dengan distribusi kelas yang seimbang sehingga cocok untuk training CNN tanpa class balancing tambahan.
+        </p>
+        <div class="d-flex gap-2 flex-wrap">
+          <span class="feature-chip"><span class="chip-dot" style="background:var(--primary);"></span>Bersih dan Terlabel</span>
+          <span class="feature-chip"><span class="chip-dot" style="background:var(--warning-color);"></span>Distribusi Seimbang</span>
+          <span class="feature-chip"><span class="chip-dot" style="background:var(--info-color);"></span>Struktur train/val/test</span>
+          <span class="feature-chip"><span class="chip-dot" style="background:#8B5CF6;"></span>Format JPG/PNG</span>
+          <span class="feature-chip"><span class="chip-dot" style="background:var(--danger-color);"></span>Lisensi CC BY 4.0</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-4">
+    <div class="card h-100">
+      <div class="card-header">
+        <div class="card-title"><i class="bi bi-pie-chart-fill"></i> Pembagian Data</div>
+      </div>
+      <div class="card-body">
+        <div id="splitChart" style="min-height:200px;"></div>
+        <div class="mt-2 d-flex flex-column gap-2">
+          <div class="d-flex justify-content-between align-items-center p-2" style="background:var(--bg);border-radius:var(--radius-sm);">
+            <span style="font-size:13px;font-weight:600;color:var(--text-primary);">
+              <span style="display:inline-block;width:10px;height:10px;background:var(--primary);border-radius:2px;margin-right:6px;"></span>Train (71.4%)
+            </span>
+            <span style="font-size:13px;font-weight:700;color:var(--primary);">{{ "{:,}".format(eval_data.jumlah_latih) }}</span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center p-2" style="background:var(--bg);border-radius:var(--radius-sm);">
+            <span style="font-size:13px;font-weight:600;color:var(--text-primary);">
+              <span style="display:inline-block;width:10px;height:10px;background:var(--warning-color);border-radius:2px;margin-right:6px;"></span>Validation (14.3%)
+            </span>
+            <span style="font-size:13px;font-weight:700;color:var(--warning-color);">{{ "{:,}".format(eval_data.jumlah_val) }}</span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center p-2" style="background:var(--bg);border-radius:var(--radius-sm);">
+            <span style="font-size:13px;font-weight:600;color:var(--text-primary);">
+              <span style="display:inline-block;width:10px;height:10px;background:var(--info-color);border-radius:2px;margin-right:6px;"></span>Test (14.3%)
+            </span>
+            <span style="font-size:13px;font-weight:700;color:var(--info-color);">{{ "{:,}".format(eval_data.jumlah_uji) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><i class="bi bi-folder2-open"></i> Struktur Folder Dataset</div>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-12 col-md-4">
+            <div class="p-3" style="background:var(--primary-light);border-radius:var(--radius-md);border:1px solid var(--border);">
+              <div style="font-size:13px;font-weight:700;color:var(--primary-dark);margin-bottom:8px;"><i class="bi bi-folder-fill me-2"></i>train/ &mdash; 15.000 gambar</div>
+              <div style="font-size:12px;color:var(--text-secondary);line-height:1.6;">
+                Digunakan untuk melatih bobot CNN. Augmentasi ringan diterapkan:
+                rotasi 15 derajat dan horizontal flip. Setiap kelas berisi ~1.000 gambar.
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-4">
+            <div class="p-3" style="background:#FEF3DC;border-radius:var(--radius-md);border:1px solid var(--border);">
+              <div style="font-size:13px;font-weight:700;color:#92400E;margin-bottom:8px;"><i class="bi bi-folder-fill me-2"></i>validation/ &mdash; 3.000 gambar</div>
+              <div style="font-size:12px;color:var(--text-secondary);line-height:1.6;">
+                Dimonitor tiap epoch untuk EarlyStopping dan ReduceLROnPlateau.
+                Model terbaik disimpan berdasarkan val_accuracy tertinggi.
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-4">
+            <div class="p-3" style="background:#EFF6FF;border-radius:var(--radius-md);border:1px solid var(--border);">
+              <div style="font-size:13px;font-weight:700;color:#1D4ED8;margin-bottom:8px;"><i class="bi bi-folder-fill me-2"></i>test/ &mdash; 3.000 gambar</div>
+              <div style="font-size:12px;color:var(--text-secondary);line-height:1.6;">
+                Digunakan untuk evaluasi akhir model yang tidak terlihat selama training.
+                Setiap kelas berisi 200 gambar. Hasilnya dicatat sebagai akurasi final.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><i class="bi bi-list-ul"></i> Detail 15 Kelas Sayuran</div>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="dataset-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Nama Lokal</th>
+                <th>Nama Folder Dataset</th>
+                <th>Nama Latin</th>
+                <th>Kategori</th>
+                <th>Ciri Visual</th>
+                <th>Manfaat Utama</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for sv in label_sayuran %}
+              <tr>
+                <td style="font-family:'Space Mono',monospace;font-size:12px;color:var(--text-muted-c);">{{ "%02d" % loop.index }}</td>
+                <td><div style="font-weight:700;font-size:13px;">{{ sv.nama_id }}</div></td>
+                <td><code style="font-size:12px;background:var(--bg);padding:2px 6px;border-radius:4px;color:var(--primary-dark);">{{ sv.folder }}/</code></td>
+                <td style="font-style:italic;font-size:12.5px;color:var(--text-muted-c);">{{ sv.latin }}</td>
+                <td>
+                  {% set kat = sv.kategori %}
+                  {% if 'Buah' in kat %}<span class="tag tag-buah">{{ kat }}</span>
+                  {% elif 'Daun' in kat %}<span class="tag tag-daun">{{ kat }}</span>
+                  {% elif 'Akar' in kat %}<span class="tag tag-akar">{{ kat }}</span>
+                  {% elif 'Umbi' in kat %}<span class="tag tag-umbi">{{ kat }}</span>
+                  {% elif 'Cruciferous' in kat %}<span class="tag tag-crucifer">{{ kat }}</span>
+                  {% else %}<span class="tag tag-polong">{{ kat }}</span>
+                  {% endif %}
+                </td>
+                <td style="font-size:12.5px;color:var(--text-secondary);">{{ sv.warna_ciri }}</td>
+                <td style="font-size:12.5px;color:var(--text-secondary);">{{ sv.manfaat }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const evalData = {{ eval_data | tojson }};
+new ApexCharts(document.getElementById('splitChart'), {
+  chart: { type: 'donut', height: 200, fontFamily: 'Plus Jakarta Sans, sans-serif', toolbar: { show: false } },
+  series: [evalData.jumlah_latih, evalData.jumlah_val, evalData.jumlah_uji],
+  labels: ['Train', 'Validation', 'Test'],
+  colors: ['#2D8653', '#F5A623', '#3B82F6'],
+  legend: { position: 'bottom', fontSize: '12px' },
+  dataLabels: { formatter: v => v.toFixed(1) + '%' },
+  plotOptions: { pie: { donut: { size: '65%', labels: { show: true, total: {
+    show: true, label: 'Total',
+    formatter: () => (evalData.jumlah_latih + evalData.jumlah_val + evalData.jumlah_uji).toLocaleString()
+  } } } } }
+}).render();
+</script>
+{% endblock %}

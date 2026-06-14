@@ -1,0 +1,70 @@
+{
+  "akurasi": 99.67,
+  "akurasi_val": 99.73,
+  "akurasi_val_akhir": 99.60,
+  "loss": 0.014,
+  "val_loss": 0.0086,
+  "epochs_dilatih": 15,
+  "fase1_epochs": 7,
+  "fase2_epochs": 8,
+  "jumlah_latih": 15000,
+  "jumlah_val": 3000,
+  "jumlah_uji": 3000,
+  "jumlah_total": 21000,
+  "img_size": "128 x 128",
+  "batch_size": 32,
+  "arsitektur": "MobileNetV2 alpha=0.50",
+  "optimizer_fase1": "Adam lr=0.001",
+  "optimizer_fase2": "Adam lr=0.0001",
+  "jumlah_per_kelas": {
+    "Kacang Polong": 1400, "Pare": 1400, "Labu Air": 1400, "Terong": 1400,
+    "Brokoli": 1400, "Kubis": 1400, "Paprika": 1400, "Wortel": 1400,
+    "Kembang Kol": 1400, "Mentimun": 1400, "Pepaya Muda": 1400, "Kentang": 1400,
+    "Labu Kuning": 1400, "Lobak": 1400, "Tomat": 1400
+  },
+  "confusion_matrix": [
+    [200,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,199,0,0,0,0,1,0,0,0,0,0,0,0,0],
+    [0,0,200,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,199,0,0,0,0,0,0,0,0,0,1,0],
+    [0,0,0,0,200,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,200,0,0,0,0,0,0,0,0,0],
+    [0,1,0,0,0,0,199,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,200,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,200,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,200,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,199,0,0,0,1],
+    [0,0,0,0,0,0,0,0,0,0,0,200,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,200,0,0],
+    [0,0,0,1,0,0,0,0,0,0,0,0,0,199,0],
+    [0,0,0,0,0,0,0,0,0,0,1,0,0,0,199]
+  ],
+  "nama_kelas": [
+    "Kacang Polong","Pare","Labu Air","Terong","Brokoli",
+    "Kubis","Paprika","Wortel","Kembang Kol","Mentimun",
+    "Pepaya Muda","Kentang","Labu Kuning","Lobak","Tomat"
+  ],
+  "history": {
+    "accuracy":    [93.55, 98.51, 99.07, 99.28, 99.33, 99.35, 99.49, 96.98, 98.67, 99.20, 99.52, 99.61, 99.61, 99.50, 99.67],
+    "val_accuracy":[98.73, 99.40, 99.40, 99.23, 99.27, 99.30, 99.37, 98.13, 99.07, 99.40, 99.57, 99.73, 99.70, 99.70, 99.60],
+    "loss":        [0.2246,0.0574,0.0359,0.0256,0.0239,0.0215,0.0196,0.1011,0.0439,0.0300,0.0201,0.0190,0.0158,0.0176,0.0140],
+    "val_loss":    [0.0425,0.0272,0.0215,0.0236,0.0210,0.0217,0.0176,0.0620,0.0271,0.0150,0.0149,0.0107,0.0112,0.0088,0.0086]
+  },
+  "classification_report": {
+    "Kacang Polong":{"precision":100.0,"recall":100.0,"f1_score":100.0,"support":200},
+    "Pare":         {"precision":99.5, "recall":99.5, "f1_score":99.5, "support":200},
+    "Labu Air":     {"precision":100.0,"recall":100.0,"f1_score":100.0,"support":200},
+    "Terong":       {"precision":99.5, "recall":99.5, "f1_score":99.5, "support":200},
+    "Brokoli":      {"precision":100.0,"recall":100.0,"f1_score":100.0,"support":200},
+    "Kubis":        {"precision":100.0,"recall":100.0,"f1_score":100.0,"support":200},
+    "Paprika":      {"precision":99.5, "recall":99.5, "f1_score":99.5, "support":200},
+    "Wortel":       {"precision":100.0,"recall":100.0,"f1_score":100.0,"support":200},
+    "Kembang Kol":  {"precision":100.0,"recall":100.0,"f1_score":100.0,"support":200},
+    "Mentimun":     {"precision":100.0,"recall":100.0,"f1_score":100.0,"support":200},
+    "Pepaya Muda":  {"precision":99.5, "recall":99.5, "f1_score":99.5, "support":200},
+    "Kentang":      {"precision":100.0,"recall":100.0,"f1_score":100.0,"support":200},
+    "Labu Kuning":  {"precision":100.0,"recall":100.0,"f1_score":100.0,"support":200},
+    "Lobak":        {"precision":99.5, "recall":99.5, "f1_score":99.5, "support":200},
+    "Tomat":        {"precision":99.5, "recall":99.5, "f1_score":99.5, "support":200}
+  }
+}
