@@ -110,7 +110,7 @@ veggiescan/
 
 ## 📊 Dataset
 
-**Vegetable Image Dataset** — Kaggle (Misrak Ahmed, 2021)  
+**Vegetable Image Dataset** - Kaggle (Misrak Ahmed, 2021)  
 🔗 https://www.kaggle.com/datasets/misrakahmed/vegetable-image-dataset
 
 - 21.000+ gambar, 15 kelas, resolusi 224×224
@@ -121,6 +121,8 @@ veggiescan/
 
 ## Screenshots
 
-### Tampilan Utama
+### Tampilan Aplikasi
+**Dashbord**
 ![Dashbord](static/img/dashboard.png)
+**Klasifikasi**
 ![Klasifikasi](static/img/klasifikasi.png)
