@@ -1,34 +1,34 @@
-# VeggieScan - Klasifikasi Sayuran Berbasis Random Forest
+# VeggieLens - Klasifikasi Sayuran Berbasis CNN
 
-Sistem klasifikasi jenis sayuran menggunakan algoritma **Random Forest** berbasis fitur warna (RGB & HSV).  
-Dibangun dengan Flask, scikit-learn, dan Bootstrap 5.
+Sistem klasifikasi jenis sayuran menggunakan **Convolutional Neural Network (CNN)**
+berbasis arsitektur MobileNetV2 (Transfer Learning).
+Dibangun dengan Flask, TensorFlow/Keras, dan Bootstrap 5.
 
 [![Python](https://img.shields.io/badge/Python-3.11-blue)](https://python.org)
 [![Flask](https://img.shields.io/badge/Flask-3.0-lightgrey)](https://flask.palletsprojects.com)
-[![scikit-learn](https://img.shields.io/badge/scikit--learn-1.2.2-orange)](https://scikit-learn.org)
+[![TensorFlow](https://img.shields.io/badge/TensorFlow-2.15-orange)](https://tensorflow.org)
 
 ---
 
 ## 🎮 Demo
-🔗 **Live:** `https://alnazh-veggiescan-cnn.hf.space` 
-📂 **GitHub:** `https://github.com/Alnazh/veggiescan-cnn`
+🔗 **Live:** `https://alnazh-veggielens-cnn.hf.space`
+📂 **GitHub:** `https://github.com/Alnazh/veggielens-cnn`
 
 ---
 
 ## ✨ Fitur Utama
 
 - 🔍 Klasifikasi 15 jenis sayuran dari foto (upload drag & drop)
-- 📊 Distribusi probabilitas semua kelas secara real-time
-- 🎨 Visualisasi 6 fitur warna yang diekstrak (RGB + HSV)
-- 📈 Evaluasi model: Confusion Matrix, Feature Importance, Classification Report
+- 📊 Top-3 prediksi dengan confidence score secara real-time
+- 📈 Dashboard statistik: distribusi prediksi & tren harian (Chart.js)
 - 📱 Tampilan responsif desktop & mobile
-- 🚀 Mode demo (tanpa model) menggunakan prediksi acak
+- 🚀 Inference cepat dengan model MobileNetV2 pre-trained
 
 ## 🥬 15 Kelas Sayuran
 
 | # | Nama | Nama Dataset |
 |---|------|-------------|
-| 00 | Kacang Polong | Bean |
+| 00 | Buncis | Bean |
 | 01 | Pare | Bitter_Gourd |
 | 02 | Labu Air | Bottle_Gourd |
 | 03 | Terong | Brinjal |
@@ -47,16 +47,16 @@ Dibangun dengan Flask, scikit-learn, dan Bootstrap 5.
 ## 🛠️ Stack Teknologi
 
 - **Backend**: Python 3.11, Flask 3.0, Gunicorn
-- **ML**: scikit-learn (Random Forest), OpenCV, NumPy
-- **Frontend**: HTML5, CSS3, Bootstrap 5.3, ApexCharts
-- **Deployment**: Railway / Render / VPS + domain .my.id
+- **ML**: TensorFlow 2.15, Keras, MobileNetV2 (Transfer Learning), NumPy, Pillow
+- **Frontend**: HTML5, CSS3, Bootstrap 5.3, Chart.js
+- **Deployment**: Hugging Face Spaces / Railway
 
 ## ⚡ Cara Menjalankan (Lokal)
 
 ### 1. Clone repositori
 ```bash
-git clone https://github.com/Alnazh/veggiescan-cnn.git
-cd veggiescan-cnn
+git clone https://github.com/Alnazh/veggielens-cnn.git
+cd veggielens-cnn
 ```
 
 ### 2. Install dependensi
@@ -64,10 +64,12 @@ cd veggiescan-cnn
 pip install -r requirements.txt
 ```
 
-### 3. (Opsional) Latih model dengan dataset
-```bash
-# Download dataset dari Kaggle dulu, ekstrak ke folder dataset/
-python train_model.py
+### 3. Pastikan model tersedia
+Letakkan file model di folder `model/`:
+```
+model/
+├── vegetable_model.keras
+└── class_indices.json
 ```
 
 ### 4. Jalankan aplikasi
@@ -77,40 +79,48 @@ python app.py
 
 Buka browser: `http://localhost:5000`
 
-> **Catatan**: Tanpa model (`model/rf_model.pkl`), aplikasi berjalan dalam **mode demo** dengan prediksi acak.
-
 ## 📁 Struktur Folder
 
 ```
-veggiescan/
-├── app.py               # Aplikasi Flask utama
-├── train_model.py       # Script pelatihan model
+veggielens/
+├── app.py               # Aplikasi Flask utama + inference CNN
 ├── requirements.txt     # Dependensi Python
 ├── Procfile             # Konfigurasi deployment
-├── runtime.txt          # Versi Python
+├── README.md
 ├── model/
-│   ├── rf_model.pkl     # Model terlatih (generate via train_model.py)
-│   └── eval_results.json
+│   ├── vegetable_model.keras   # Model CNN hasil training
+│   └── class_indices.json      # Mapping indeks ke nama kelas
 ├── templates/
 │   ├── base.html
+│   ├── index.html
+│   ├── predict.html
 │   ├── dashboard.html
-│   ├── klasifikasi.html
-│   ├── evaluasi.html
-│   ├── dataset.html
-│   └── tentang.html
+│   ├── about.html
+│   ├── 404.html
+│   └── 500.html
 ├── static/
-│   ├── css/style.css
+│   ├── css/custom.css
 │   ├── js/main.js
-│   └── libs/apex-charts/
-└── dataset/             # Folder dataset (tidak di-commit ke Git)
-    ├── Bean/
-    ├── Bitter_Gourd/
-    └── ...
+│   └── uploads/         # Folder sementara upload (auto-hapus)
+└── prediction_log.json  # Log prediksi (dibuat otomatis)
 ```
+
+## 🧠 Arsitektur Model CNN
+
+| Komponen | Detail |
+|---|---|
+| Base Model | MobileNetV2 (Transfer Learning) |
+| Input Size | 128 × 128 × 3 (RGB) |
+| Preprocessing | `mobilenet_v2.preprocess_input` (skala -1 s/d 1) |
+| Output Layer | Dense 15 + Softmax |
+| Optimizer | Adam |
+| Loss Function | Categorical Crossentropy |
+| Akurasi Validasi | ~99% |
+| Jumlah Epoch | 15 (dengan fine-tuning di epoch ke-7) |
 
 ## 📊 Dataset
 
-**Vegetable Image Dataset** - Kaggle (Misrak Ahmed, 2021)  
+**Vegetable Image Dataset** - Kaggle (Misrak Ahmed, 2021)
 🔗 https://www.kaggle.com/datasets/misrakahmed/vegetable-image-dataset
 
 - 21.000+ gambar, 15 kelas, resolusi 224×224
@@ -122,7 +132,7 @@ veggiescan/
 ## Screenshots
 
 ### Tampilan Aplikasi
-**Dashbord**
-![Dashbord](static/img/dashboard.png)
+**Dashboard**
+![Dashboard](static/img/dashboard.png)
 **Klasifikasi**
 ![Klasifikasi](static/img/klasifikasi.png)
